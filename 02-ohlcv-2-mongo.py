@@ -9,31 +9,32 @@ import time
 # refer to 01-ccxt-basics.py for commented version of below code
 coinbase = ccxt.coinbasepro()
 coinbase.load_markets()
-coinbase_ohlcv = coinbase.fetch_ohlcv('BTC/USDC', timeframe='5m', limit=1)
-columns = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
-df = pd.DataFrame(coinbase_ohlcv, columns=columns)
-df['Timestamp'] = df['Timestamp'].apply(
-    lambda ts: str(datetime.datetime.fromtimestamp(ts / 1000.0)))
-# Set Timestamp as index
-df.index = df['Timestamp']
-print(df)
 
-# INSERT BTC/USDC CANDLE DATA INTO MONGO
-
-# automatically connect to default host and port
-##client = MongoClient()
-# connect to specified host
-##client = MongoClient('localhost', 27017)
-# connect to specified host with MongoDB URI format
-client = MongoClient('mongodb://localhost:27017/')
-
-# get database
-db = client.btcusdc
-# get collection
-ohlcv_collection = db.ohlcv
-
-# infinite loop, will add new document every 10 seconds
 while(True):
+    coinbase_ohlcv = coinbase.fetch_ohlcv('BTC/USDC', timeframe='5m', limit=1)
+    columns = ['Timestamp', 'Open', 'High', 'Low', 'Close', 'Volume']
+    df = pd.DataFrame(coinbase_ohlcv, columns=columns)
+    df['Timestamp'] = df['Timestamp'].apply(
+        lambda ts: str(datetime.datetime.fromtimestamp(ts / 1000.0)))
+    # Set Timestamp as index
+    df.index = df['Timestamp']
+    print(df)
+
+    # INSERT BTC/USDC CANDLE DATA INTO MONGO
+
+    # automatically connect to default host and port
+    ##client = MongoClient()
+    # connect to specified host
+    ##client = MongoClient('localhost', 27017)
+    # connect to specified host with MongoDB URI format
+    client = MongoClient('mongodb://localhost:27017/')
+
+    # get database
+    db = client.btcusdc
+    # get collection
+    ohlcv_collection = db.ohlcv
+
+    # infinite loop, will add new document every 10 seconds
     # insert DataFrame as single document into btcusdc.ohlcv
     print('calling insert_one()')
     ohlcv_id = ohlcv_collection.insert_one(df.to_dict()).inserted_id
